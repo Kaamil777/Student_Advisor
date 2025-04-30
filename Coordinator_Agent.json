@@ -1,0 +1,493 @@
+{
+  "name": "Coordinator Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger1').item.json.message.text }}",
+        "options": {
+          "systemMessage": "=You are a warm, enthusiastic, and highly supportive Student and Career Guidance Assistant communicating with students via Telegram\n\nYour mission is to help students improve their academic performance and offer personalized career guidance. You have access to 2 tools to gather information. You MUST always use these tools. Do not use your own knowledge.\n\nBegin the conversation with an encouraging and friendly tone. Make the student feel comfortable and motivated to share information.\n\nImportant Rules:\nYou must provide answers in a South African context.\nKindly and clearly ask the student for the following details, step-by-step:\n\nTheir current grade or educational level (e.g., 8th grade, 12th grade, first-year college, etc.).\n\nA list of the subjects they are currently studying.\n\nTheir current marks or grades in each subject.\n\nAfter each student response, engage them with positive reinforcement (e.g., \"That's great!\", \"You're doing awesome!\", \"Thanks for sharing!\"). Make the conversation feel lively and supportive.\n\nYou MUST use the research agent tool to get career guidance when a student asks for that. use the knowledge base tool for study related queries.\n\nProvide personalized strategies to help the student improve their marks.\n\nOffer career guidance based on their interests, academic strengths, and aspirations, obtained through the research agent.\n\nTone: Warm, motivational, patient, and encouraging at every step.\n\nAdd emojis where appropriate but not excessively.\n\nAlways use the provided tools to accomplish tasks and never use your own knowledge base. If the answer is not available via one of your tools, respond to the user indicating that you could not find the information and ask them to be more specific.\n\n##  Tools: \n- Knowledge Base Agent tool - Reference this tool everytime a student asks for information that is not in your knowledge base. Search the supabase vector store for information based on the query provided.\n- Reasearch Agent tool - this is where you will have access to the YouTube API, SerpAPI and HTTP Request that you will return to the student to enhance your help to them.\n\nOutput Format:\n\nThe output should be a Telegram-style conversation, with the AI Assistant's messages clearly indicated. Be sure to keep the output within telegram messaging limits.Please return the response back with the correct special charaters for the relevent subject like mathematics and engineering. Use the UNICODE standard. Please edit it so that Telegram can display it in a nice format. If possible please put the response in a code snippet."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        532,
+        0
+      ],
+      "id": "ccd0e3a2-c295-4c64-95b4-f9c86d9aa246",
+      "name": "Coordinator AI",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "name": "Research_Agent",
+        "description": "Call this tool to get back answers and study material for the users query",
+        "workflowId": {
+          "__rl": true,
+          "value": "dz5k1DSTNUUXOqIy",
+          "mode": "list",
+          "cachedResultName": "Research Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        680,
+        220
+      ],
+      "id": "1967ab5a-e2a2-4e2b-a7fb-64355afa654e",
+      "name": "Call Research Agent"
+    },
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "model_temperature",
+              "value": 0.8
+            },
+            {
+              "name": "token_length",
+              "value": 500
+            }
+          ],
+          "string": [
+            {
+              "name": "system_command",
+              "value": "=You are a warm, enthusiastic, and highly supportive Student and Career Guidance Assistant communicating with students via Telegram. Do not show your adjectives in your introduction nor your tone. \n\n#Instruction:\nGive the user 2 options to pick from 1. Study Guidance 2. Career Guidance.\nUser name is {{ $json?.message?.from?.first_name }}. User system language is {{ $json?.message?.from?.language_code }}. First, detect user text language. Next, provide your reply in the same language. Include several suitable emojis in your answer."
+            },
+            {
+              "name": "bot_typing",
+              "value": "={{ $json?.message?.text.startsWith('/image') ? \"upload_photo\" : \"typing\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1e5b0f9a-5d01-4752-a495-193af1ab9322",
+      "name": "Settings",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -160,
+        -100
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.from.id }}",
+        "action": "={{ $json.bot_typing }}"
+      },
+      "id": "6fd3b527-3fa0-4e90-94ee-394dcf4a6435",
+      "name": "Send Typing action",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        0,
+        80
+      ],
+      "typeVersion": 1,
+      "webhookId": "7bb7d0cf-deea-4681-8ba9-1e8e3a42d20b",
+      "credentials": {
+        "telegramApi": {
+          "id": "KKJfpbOdZCpPzO2a",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "id": "5658f351-c9ea-4a35-b506-101c17f9ae32",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        220,
+        -100
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "message.text",
+              "value": "={{ $json?.message?.text || \"\" }}"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": true
+        }
+      },
+      "id": "20d17e58-017f-4003-881f-e1a5a6650835",
+      "name": "PreProcessing",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -340,
+        80
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "id": "ec5bcbf1-ea44-4103-9da8-c62e4005d847",
+      "name": "Telegram Trigger1",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -500,
+        -120
+      ],
+      "webhookId": "51942fbb-ca0e-4ec4-9423-5fcc7d3c4281",
+      "typeVersion": 1,
+      "credentials": {
+        "telegramApi": {
+          "id": "KKJfpbOdZCpPzO2a",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Settings').first().json.message.from.id }}",
+        "text": "={{ $('Coordinator AI').item.json.output }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "f82f66f6-83b9-4108-8caa-c56257740dfc",
+      "name": "Text reply1",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1100,
+        100
+      ],
+      "typeVersion": 1,
+      "webhookId": "4209edd4-57d0-49c0-bd73-b724ea1137b3",
+      "credentials": {
+        "telegramApi": {
+          "id": "KKJfpbOdZCpPzO2a",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        440,
+        220
+      ],
+      "id": "b56b3a81-af0f-41f7-bc55-728de54f418f",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "icdmYmWtd0FDQZgw",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Telegram Trigger1').item.json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        940,
+        -100
+      ],
+      "id": "ed44b1e2-31fc-4dd4-8085-28aeee2fa121",
+      "name": "Final Response Typing",
+      "webhookId": "3ca92b1d-8f09-460e-95ed-463e8cba19e4",
+      "credentials": {
+        "telegramApi": {
+          "id": "KKJfpbOdZCpPzO2a",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Knowledge_Base",
+        "description": "Call this Tool to access Study Guides, exam papers and Literature. This Tool should be called when the user is asking questions on subject matter they may be struggling with.",
+        "workflowId": {
+          "__rl": true,
+          "value": "xMA81BNPM9bfCPrD",
+          "mode": "list",
+          "cachedResultName": "Knowledge Base Agent"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.1,
+      "position": [
+        800,
+        220
+      ],
+      "id": "7d512bb0-594e-44aa-87c8-638282e7ae2f",
+      "name": "Call Knowledge Base"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        220,
+        100
+      ],
+      "id": "4d52495f-1082-4460-bbd8-564cc89ffa4c",
+      "name": "When chat message received",
+      "webhookId": "b03acd50-f35d-4543-905b-a1e8ed6cc577",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger1').item.json.message.from.first_name }}{{ $('Telegram Trigger1').item.json.message.from.last_name }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        220
+      ],
+      "id": "13e53348-bb33-4ff4-952e-5d7908f4cb0c",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger1": [
+      {
+        "json": {
+          "update_id": 198027973,
+          "message": {
+            "message_id": 85,
+            "from": {
+              "id": 7822492232,
+              "is_bot": false,
+              "first_name": "Ncamisile",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 7822492232,
+              "first_name": "Ncamisile",
+              "type": "private"
+            },
+            "date": 1746037367,
+            "text": "what happened"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Coordinator AI": {
+      "main": [
+        [
+          {
+            "node": "Final Response Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Research Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Send Typing action",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Typing action": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Coordinator AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PreProcessing": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "PreProcessing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Coordinator AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Response Typing": {
+      "main": [
+        [
+          {
+            "node": "Text reply1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Coordinator AI",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Coordinator AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Coordinator AI",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5e22d40c-1cac-4f09-a2fd-b9f97a69737f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3df057e5eab3aba2814a7d9b4617e513a176cdb94218a9813296bfb35f12c35d"
+  },
+  "id": "QLQgYrCzDDpcWMYW",
+  "tags": []
+}

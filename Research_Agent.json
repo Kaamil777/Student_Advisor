@@ -1,0 +1,200 @@
+{
+  "name": "Research Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "query"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        360,
+        -180
+      ],
+      "id": "bcfaf314-905e-440e-9492-58387841af00",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query}}",
+        "options": {
+          "systemMessage": "You are an expert student and career guidance assistant. Your primary goal is to help students improve their academic performance and make informed career decisions. You will analyze student information, conduct research using provided tools in a specific order, and generate a report with targeted study resources and career suggestions.\n\nContext\nThe student has provided their academic information, including grades. You will use this information to:\n\nAssess their academic strengths and weaknesses.\n\nConduct research using provided tools in the specified order to find study resources to improve their grades.\n\nIdentify potential career paths that align with their strengths and interests.\n\nInstructions\nYou must provide answers in a South African context.\nAnalyze Academic Performance:\n\nReview the student's grades across all subjects.\n\nCompare the grades to the following grading scale (out of 100):\n\nFirst-class pass: 75% and above\n\nSecond-class (division one): 70-74%\n\nSecond-class (division two): 60-69%\n\nThird-class: 50-59%\n\nFail: Below 40%\n\nIdentify subjects where the student excels (grades above 70%) and subjects where they struggle (below 60%).\n\nFor subjects with grades above 70%, provide tips on how the student can further improve (e.g., aiming for 80%+).\n\nConduct Research for Study Guidance:\n\nFor each subject, you MUST use the provided tools in the following order to find relevant study resources:\n\nPinecone Vector Store: First, use the \"pinecone vector store\" to retrieve documents related to the subject.\n\nHTTP Request Tool: If sufficient information is not found in the Pinecone vector store, use the \"HTTP Request Tool\" to access relevant websites or APIs.\n\nSERP Search Tool: If the information is still insufficient after using the \"HTTP Request Tool\", use the \"SERP Search Tool\" for a broader web search.\n\nPrioritize the information retrieved from the tools.\n\nOrganize these resources by subject.\n\nFor each resource, provide a concise explanation of how it can help the student improve their understanding and performance in that subject. Include the source (website, document title, etc.) and a direct link if available.\n\n\nOffer Career Guidance:\n\nBased on the student's overall academic performance, identify their strengths and potential areas of interest. Consider subjects where they excel, but also look for transferable skills.\n\nUse the tools in the specified order (Pinecone, HTTP Request, SERP) to research potential career paths related to the student's strengths.\n\nSuggest 2-3 potential career paths that might be a good fit for the student, based solely on the information retrieved from the tools.\n\nFor each career path, provide a brief description and explain why it aligns with the student's strengths and academic profile, citing the sources found using the tools.\n\nIf you cannot find relevant career paths using the tools, state: \"I am unable to find suitable career paths using the available tools.\"\n\nGenerate Report:\n\nCompile all the information into a comprehensive report.\n\nThe report should include the following sections:\n\nAcademic Performance Summary: A summary of the student's grades, highlighting strengths and weaknesses.\n\nStudy Guidance: Subject-specific recommendations and resources for improvement, obtained using the tools in the specified order.\n\nCareer Suggestions: Potential career paths with explanations, researched using the tools in the specified order.\n\nTable of Contents: A numbered table of contents for the report.\n\nTools\nYou must use the tools in the order specified within the instructions.\n\nYou have access to the following tools:\n\nPinecone Vector Store : [pinecone vector store]. When using this tool, be descriptive in your query prompt\n\nHTTP Request Tool: [HTTP Request Tool]\n\nSERP Search Tool: [SERP Search Tool]\n\nOutput Format\nThe output should be a well-structured report and cite sources used, and provide name of tool used to source these details."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        620,
+        -180
+      ],
+      "id": "5088ae55-5c64-4b86-b4f3-97d9e467e8a9",
+      "name": "Research Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        580,
+        40
+      ],
+      "id": "51dd456d-26df-4540-b81d-3342079b9015",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "rVCMmhYBtGbZ4PTH",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "gl": "=za"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        40
+      ],
+      "id": "6dc18725-3eff-4017-9ab8-fd33dfc90f2e",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "jX5NEFqtiksN5wTS",
+          "name": "SerpAPI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "search youtube for list of videos that i query",
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "part",
+              "valueProvider": "fieldValue",
+              "value": "snippet"
+            },
+            {
+              "name": "q"
+            },
+            {
+              "name": "maxResults",
+              "valueProvider": "fieldValue",
+              "value": "10"
+            },
+            {
+              "name": "order",
+              "valueProvider": "fieldValue",
+              "value": "viewCount"
+            },
+            {
+              "name": "type",
+              "valueProvider": "fieldValue",
+              "value": "video"
+            },
+            {
+              "name": "regionCode",
+              "valueProvider": "fieldValue",
+              "value": "ZA"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        840,
+        40
+      ],
+      "id": "effb0bb4-00d9-42a6-a1a6-b6e9fd3dad39",
+      "name": "HTTP Request2",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "l0GVGTgsVU6P7akb",
+          "name": "YouTube account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "any"
+  },
+  "versionId": "5dc6a418-4bcf-4cf1-a66e-6edae1eaa395",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3df057e5eab3aba2814a7d9b4617e513a176cdb94218a9813296bfb35f12c35d"
+  },
+  "id": "dz5k1DSTNUUXOqIy",
+  "tags": []
+}
